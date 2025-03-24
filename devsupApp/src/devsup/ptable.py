@@ -10,7 +10,7 @@ import threading, inspect
 _tables = {}
 
 from .db import IOScanListThread
-from . import INVALID_ALARM, UDF_ALARM
+from . import INVALID_ALARM, UDF_ALARM, NO_ALARM
 
 __all__ = [
     'Parameter',
@@ -161,9 +161,12 @@ class _ParamInstance(object):
         self.name = name
         self.table, self.scan, self._value = table, scan, None
         self.alarm, self.actions = 0, []
+        self.stat = NO_ALARM
+        self.amsg = ""
         self._groups = set()
         self._sevr = None
-        self._stat = None
+        self._rec = None
+        self._locked = False
     def _get_value(self):
         return self._value
     def _set_value(self, val):
@@ -262,8 +265,9 @@ class _ParamSupSet(_ParamSupGet):
         else:
             # sync record to table
             self.inst.table.log.debug('%s <- %s (%s)', self.inst.name, rec.NAME, rec.VAL)
-            self.inst._sevr = rec.field('SEVR')
-            self.inst._stat = rec.field('STAT')
+            if self.inst._sevr is None:
+                self.inst._sevr = rec.field('SEVR')
+            self.inst._rec = rec
             if self.vdata is None:
                 nval = self.vfld.getval()
             else:
@@ -275,20 +279,21 @@ class _ParamSupSet(_ParamSupGet):
                 
                 # Execute actions
                 self.inst._exec(oval)
-                for G in self.inst._groups:
-                    G._exec()
-                    for param in G._params:
-                       if self.inst != param and param._sevr is not None:
-                           oldsevr = param._sevr.getval()
-                           oldstat = param._stat.getval()
-                           newstat = oldstat
-                           if param.alarm == 0:
-                               newstat = 0
-                           if oldsevr != param.alarm or oldstat != newstat:
-                               param._sevr.putval(param.alarm)
                 oldsevr = self.inst._sevr.getval()
                 if oldsevr != self.inst.alarm:
-                    rec.setSevr(self.inst.alarm)
+                    rec.setSevr(self.inst.alarm, self.inst.stat, self.inst.amsg)
+                self.inst._locked = False
+            for G in self.inst._groups:
+                for param in G._params:
+                    if self.inst != param and param._sevr is not None:
+                        with param.table.lock:
+                            oldsevr = param._sevr.getval()
+                            if oldsevr != param.alarm:
+                                if param._locked:
+                                    pass
+                                else:
+                                    param._locked = True
+                                    param._rec.scan(sync=False, force=0)
 
 class TableBase(object):
     """Base class for all parameter tables.
