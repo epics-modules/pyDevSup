@@ -1,7 +1,7 @@
 name: pyDevSup
 
 # Trigger on pushes and PRs to any branch
-on: [push, pull_request]
+on: [push, pull_request, workflow_dispatch]
 
 env:
     SETUP_PATH: .ci-local:.ci
