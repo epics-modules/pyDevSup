@@ -164,7 +164,7 @@ static int assign_array(DBADDR *paddr, PyObject *arr)
     }
 
     Py_XINCREF(desc);
-    if(!(aval = PyArray_FromAny(arr, desc, 1, 2, NPY_CARRAY, arr)))
+    if(!(aval = PyArray_FromAny(arr, desc, 1, 2, NPY_ARRAY_C_CONTIGUOUS | NPY_ARRAY_ALIGNED | NPY_ARRAY_WRITEABLE, arr)))
         return 1;
 
     if(elemsize!=PyArray_ITEMSIZE(aval)) {
@@ -219,7 +219,7 @@ static PyObject* pyField_getval(pyField *self)
 
         if(self->addr.no_elements>1) {
             return build_array((PyObject*)self, rawfield, self->addr.field_type,
-                               noe, NPY_CARRAY_RO);
+                               noe, NPY_ARRAY_C_CONTIGUOUS | NPY_ARRAY_ALIGNED);
         }
     }
 
@@ -377,7 +377,7 @@ static PyObject *pyField_getarray(pyField *self)
     } else
         data = self->addr.pfield;
 
-    return build_array((PyObject*)self, data, self->addr.field_type, self->addr.no_elements, NPY_CARRAY);
+    return build_array((PyObject*)self, data, self->addr.field_type, self->addr.no_elements, NPY_ARRAY_C_CONTIGUOUS | NPY_ARRAY_ALIGNED | NPY_ARRAY_WRITEABLE);
 }
 
 static PyObject *pyField_getlen(pyField *self)
