@@ -44,6 +44,12 @@ static PyArray_Descr* dbf2np[DBF_MENU+1];
   #define PyDataType_ELSIZE(descr) ((descr)->elsize)
   #define PyDataType_SET_ELSIZE(descr, size) (descr)->elsize = size
 #endif
+#ifndef NPY_CARRAY_RO
+    #define NPY_CARRAY_RO NPY_ARRAY_CARRAY_RO
+#endif
+#ifndef NPY_CARRAY
+    #define NPY_CARRAY NPY_ARRAY_CARRAY
+#endif
 #endif
 
 typedef struct {
