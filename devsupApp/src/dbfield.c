@@ -130,17 +130,19 @@ static int assign_array(DBADDR *paddr, PyObject *arr)
     PyArray_Descr *desc = dbf2np[paddr->field_type];
 
     if(paddr->field_type==DBF_STRING &&
-        (PyArray_NDIM(arr)!=2 || PyArray_DIM(arr,0)>maxlen || PyArray_DIM(arr,1)!=MAX_STRING_SIZE))
+        (PyArray_NDIM((PyArrayObject *)arr) != 2 || 
+         PyArray_DIM((PyArrayObject *)arr, 0) > (npy_intp) maxlen || 
+         PyArray_DIM((PyArrayObject *)arr, 1) != MAX_STRING_SIZE))
     {
         PyErr_Format(PyExc_ValueError, "String array has incorrect shape or is too large");
         return 1;
 
-    } else if(PyArray_NDIM(arr)!=1 || PyArray_DIM(arr,0)>maxlen) {
+    } else if(PyArray_NDIM((PyArrayObject *)arr) != 1 || PyArray_DIM((PyArrayObject *)arr, 0) > (npy_intp) maxlen) {
         PyErr_Format(PyExc_ValueError, "Array has incorrect shape or is too large");
         return 1;
     }
 
-    insize = PyArray_DIM(arr, 0);
+    insize = PyArray_DIM((PyArrayObject *)arr, 0);
 
     if(paddr->special==SPC_DBADDR &&
        (prset=dbGetRset(paddr)) &&
@@ -165,13 +167,13 @@ static int assign_array(DBADDR *paddr, PyObject *arr)
     if(!(aval = PyArray_FromAny(arr, desc, 1, 2, NPY_CARRAY, arr)))
         return 1;
 
-    if(elemsize!=PyArray_ITEMSIZE(aval)) {
+    if(elemsize!=PyArray_ITEMSIZE((PyArrayObject *)aval)) {
         PyErr_Format(PyExc_AssertionError, "item size mismatch %u %u",
-                    elemsize, (unsigned)PyArray_ITEMSIZE(aval) );
+                    elemsize, (unsigned)PyArray_ITEMSIZE((PyArrayObject *)aval) );
         return 1;
     }
 
-    memcpy(rawfield, PyArray_GETPTR1(aval, 0), insize*elemsize);
+    memcpy(rawfield, PyArray_GETPTR1((PyArrayObject *)aval, 0), insize*elemsize);
 
     Py_DECREF(aval);
 
