@@ -53,7 +53,7 @@ print('PY_LD_VER :=',ldver, file=out)
 print('PY_INCDIRS :=',' '.join(incdirs), file=out)
 print('PY_LIBDIRS :=',libdir, file=out)
 if sys.platform == 'win32':
-    print('PY_LDLIBS :=', '/LIBPATH:' + os.path.join(sys.prefix, 'libs'), file=out)
+    print('PY_LDLIBS :=', '-LIBPATH:' + os.path.join(sys.prefix, 'libs'), file=out)
 print('HAVE_NUMPY :=',have_np, file=out)
 
 try:

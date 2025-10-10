@@ -58,6 +58,9 @@ from ._dbapi import (EPICS_VERSION_STRING,
 __all__ = []
 
 
+def epics_version_int():
+    return (EPICS_VERSION, EPICS_REVISION, EPICS_MODIFICATION, EPICS_PATCH_LEVEL)
+
 def _init(iocMain=False):
     if not iocMain:
         # we haven't read/register base.dbd
@@ -68,11 +71,12 @@ def _init(iocMain=False):
     dirname = os.path.dirname(__file__)
     dbd_name = dirname + "/_dbapi.dbd"
     _dbapi.dbReadDatabase(dbd_name)
-    epics_version_int = (EPICS_VERSION, EPICS_REVISION, EPICS_MODIFICATION, EPICS_PATCH_LEVEL)
-    if epics_version_int >= (3, 15, 0, 2):
+    if epics_version_int() >= (3, 15, 0, 2):
+        # Long strings are impletemented.
         dbd_name = dirname + "/_lsilso.dbd"
         _dbapi.dbReadDatabase(dbd_name)
-    if epics_version_int >= (3, 16, 1, 0):
+    if epics_version_int() >= (3, 16, 1, 0):
+        # Long ints are impletemented.
         dbd_name = dirname + "/_int64.dbd"
         _dbapi.dbReadDatabase(dbd_name)
     _dbapi._dbd_setup()

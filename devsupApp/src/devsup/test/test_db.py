@@ -9,7 +9,7 @@ from numpy.testing import assert_array_almost_equal, assert_array_equal
 
 from ..db import getRecord
 from .. import _dbapi
-from .. import _init
+from .. import _init, epics_version_int
 
 from .util import IOCHelper
 
@@ -142,8 +142,15 @@ class TestLongStringField(IOCHelper):
             field(OMSL,  "closed_loop")
         }
     """
+    if epics_version_int() < (3, 15, 0, 2):
+        # Long strings not impletemented yet.
+        db = None
 
     def test_lsilso(self):
+        if epics_version_int() < (3, 15, 0, 2):
+            # Long strings not impletemented yet.
+            return
+ 
         lsi = getRecord("rec:lsi")
         lso = getRecord("rec:lso")
 
@@ -176,8 +183,14 @@ class TestInt64Field(IOCHelper):
             field(OMSL,  "closed_loop")
         }
     """
+    if epics_version_int() < (3, 16, 1, 0):
+        # Long ints not impletemented yet.
+        db = None
 
     def testint64(self):
+        if epics_version_int() < (3, 16, 1, 0):
+            # Long ints not impletemented yet.
+            return
         in64 = getRecord("rec:in64")
         out64 = getRecord("rec:out64")
 

@@ -3,16 +3,9 @@
 #undef _POSIX_C_SOURCE
 #undef _XOPEN_SOURCE
 
-#ifdef _DEBUG
-#undef _DEBUG
 #include <Python.h>
 #ifdef HAVE_NUMPY
-#include <numpy/ndarrayobject.h>
-#endif
-#define _DEBUG
-#else
-#include <Python.h>
-#include <numpy/ndarrayobject.h>
+#include <_numpy/ndarrayobject.h>
 #endif
 
 #include <epicsVersion.h>
@@ -29,6 +22,11 @@
 #endif
 
 #ifdef HAVE_NUMPY
+/* See https://numpy.org/devdocs/reference/c-api/array.html */
+/* Allow compiling on NumPy 1.x */
+#if NPY_ABI_VERSION < 0x02000000
+#define PyArray_DescrProto PyArray_Descr
+#endif
 static const int dbf2np_map[DBF_MENU+1] = {
     NPY_STRING,  // DBF_STRING
     NPY_BYTE,    // DBF_CHAR
@@ -46,7 +44,7 @@ static const int dbf2np_map[DBF_MENU+1] = {
     NPY_INT16,   // DBF_ENUM
     NPY_INT16,   // DBF_MENU
 };
-static PyArray_Descr* dbf2np[DBF_MENU+1];
+static PyArray_DescrProto* dbf2np[DBF_MENU+1];
 #endif
 
 typedef struct {
@@ -126,23 +124,24 @@ static int assign_array(DBADDR *paddr, PyObject *arr)
 #ifdef HAVE_NUMPY
     void *rawfield = paddr->pfield;
     rset *prset;
-    PyObject *aval;
+    PyArrayObject *aval;
+    PyArrayObject * array = (PyArrayObject *)arr;
     unsigned elemsize = dbValueSize(paddr->field_type);
     unsigned long maxlen = paddr->no_elements, insize;
     PyArray_Descr *desc = dbf2np[paddr->field_type];
 
     if(paddr->field_type==DBF_STRING &&
-        (PyArray_NDIM(arr)!=2 || PyArray_DIM(arr,0)>maxlen || PyArray_DIM(arr,1)!=MAX_STRING_SIZE))
+        (PyArray_NDIM(array)!=2 || PyArray_DIM(array,0)>maxlen || PyArray_DIM(array,1)!=MAX_STRING_SIZE))
     {
         PyErr_Format(PyExc_ValueError, "String array has incorrect shape or is too large");
         return 1;
 
-    } else if(PyArray_NDIM(arr)!=1 || PyArray_DIM(arr,0)>maxlen) {
+    } else if(PyArray_NDIM(array)!=1 || PyArray_DIM(array,0)>maxlen) {
         PyErr_Format(PyExc_ValueError, "Array has incorrect shape or is too large");
         return 1;
     }
 
-    insize = PyArray_DIM(arr, 0);
+    insize = PyArray_DIM(array, 0);
 
     if(paddr->special==SPC_DBADDR &&
        (prset=dbGetRset(paddr)) &&

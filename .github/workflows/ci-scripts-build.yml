@@ -11,8 +11,9 @@ env:
 
 jobs:
   build-base:
-    name: ${{ matrix.base }}/${{ matrix.os }}/${{ matrix.python }}/${{ matrix.extra }}
+    name: ${{ matrix.base }}/${{ matrix.os }}/${{ matrix.profile }}/${{ matrix.python }}/${{ matrix.extra }}
     runs-on: ${{ matrix.os }}
+    container: ${{ matrix.container }}
     # Set environment variables from matrix parameters
     env:
       CMP: ${{ matrix.cmp }}
@@ -27,6 +28,57 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - os: ubuntu-latest
+            cmp: gcc
+            configuration: default
+            base: "7.0"
+            python: "3.7"
+            profile: deb10
+            container: "python:3.7"
+            test: yes
+
+          - os: ubuntu-latest
+            cmp: gcc
+            configuration: default
+            base: "7.0"
+            python: "3.9"
+            profile: deb11
+            test: yes
+
+          - os: ubuntu-latest
+            cmp: gcc
+            configuration: default
+            base: "7.0"
+            python: "3.11"
+            profile: deb12
+            test: yes
+
+          - os: ubuntu-latest
+            cmp: gcc
+            configuration: default
+            base: "7.0"
+            python: "3.13"
+            profile: deb13
+            test: yes
+
+          - os: ubuntu-latest
+            cmp: gcc
+            configuration: default
+            base: "7.0"
+            python: "3.6"
+            container: "python:3.6"
+            profile: latest
+            test: yes
+
+          - os: ubuntu-latest
+            cmp: gcc
+            configuration: default
+            base: "7.0"
+            python: "3.7"
+            container: "python:3.7"
+            profile: latest
+            test: yes
+
           - os: ubuntu-latest
             cmp: gcc
             configuration: default
@@ -55,7 +107,23 @@ jobs:
             cmp: gcc
             configuration: default
             base: "7.0"
+            python: "3.11"
+            profile: latest
+            test: yes
+
+          - os: ubuntu-latest
+            cmp: gcc
+            configuration: default
+            base: "7.0"
             python: "3.12"
+            profile: latest
+            test: yes
+
+          - os: ubuntu-latest
+            cmp: gcc
+            configuration: default
+            base: "7.0"
+            python: "3.13"
             profile: latest
             test: yes
 
@@ -64,6 +132,40 @@ jobs:
             configuration: default
             base: "7.0"
             python: "3.10"
+            profile: latest
+            test: yes
+
+          - os: ubuntu-latest
+            cmp: gcc
+            configuration: default
+            base: "3.15"
+            python: "3.7"
+            container: "python:3.7"
+            profile: deb10
+            test: yes
+
+          - os: ubuntu-latest
+            cmp: gcc
+            configuration: default
+            base: "3.15"
+            python: "3.13"
+            profile: deb13
+            test: yes
+
+          #- os: ubuntu-latest
+          #  cmp: gcc
+          #  configuration: default
+          #  base: "3.14" # RuntimeError: Requires Base >=3.15 ??
+          #  python: "3.7"
+          #  container: "python:3.7"
+          #  profile: deb10
+          #  test: yes
+
+          - os: windows-latest
+            cmp: vs2022
+            configuration: default
+            base: "3.15"
+            python: "3.11"
             profile: latest
             test: yes
 
@@ -96,6 +198,7 @@ jobs:
       with:
         submodules: true
     - name: Set up Python ${{ matrix.python }}
+      if: ${{ !matrix.container }}
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python }}
@@ -110,13 +213,8 @@ jobs:
         EOF
         echo === configure/CONFIG_SITE.local ===
         cat configure/CONFIG_SITE.local
-    - name: makehelper.py
-      run: python makehelper.py
-    - name: DSOs
-      shell: bash
-      run: find ${Python_ROOT_DIR} -name '*.dll' -o -name '*.so' -o -name '*.dylib'
-    - name: get_config_vars
-      run: python -c 'from sysconfig import get_config_vars; from pprint import pprint; pprint(get_config_vars())'
+    - name: Python sysconfig
+      run: python -m sysconfig
     - name: Prepare and compile dependencies
       run: python .ci/cue.py prepare
     - name: Build main module
