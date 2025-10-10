@@ -5,7 +5,7 @@
 
 #include <Python.h>
 #ifdef HAVE_NUMPY
-#include <_numpy/ndarrayobject.h>
+#include <numpy/ndarrayobject.h>
 #endif
 
 #include <epicsVersion.h>
