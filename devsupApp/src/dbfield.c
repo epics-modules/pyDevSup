@@ -44,12 +44,6 @@ static PyArray_Descr* dbf2np[DBF_MENU+1];
   #define PyDataType_ELSIZE(descr) ((descr)->elsize)
   #define PyDataType_SET_ELSIZE(descr, size) (descr)->elsize = size
 #endif
-#ifndef NPY_CARRAY_RO
-    #define NPY_CARRAY_RO NPY_ARRAY_CARRAY_RO
-#endif
-#ifndef NPY_CARRAY
-    #define NPY_CARRAY NPY_ARRAY_CARRAY
-#endif
 #endif
 
 typedef struct {
@@ -164,7 +158,7 @@ static int assign_array(DBADDR *paddr, PyObject *arr)
     }
 
     Py_XINCREF(desc);
-    if(!(aval = PyArray_FromAny(arr, desc, 1, 2, NPY_CARRAY, arr)))
+    if(!(aval = PyArray_FromAny(arr, desc, 1, 2, NPY_ARRAY_C_CONTIGUOUS | NPY_ARRAY_ALIGNED | NPY_ARRAY_WRITEABLE, arr)))
         return 1;
 
     if(elemsize!=PyArray_ITEMSIZE((PyArrayObject *)aval)) {
@@ -219,7 +213,7 @@ static PyObject* pyField_getval(pyField *self)
 
         if(self->addr.no_elements>1) {
             return build_array((PyObject*)self, rawfield, self->addr.field_type,
-                               noe, NPY_CARRAY_RO);
+                               noe, NPY_ARRAY_C_CONTIGUOUS | NPY_ARRAY_ALIGNED);
         }
     }
 
@@ -374,7 +368,7 @@ static PyObject *pyField_getarray(pyField *self)
     } else
         data = self->addr.pfield;
 
-    return build_array((PyObject*)self, data, self->addr.field_type, self->addr.no_elements, NPY_CARRAY);
+    return build_array((PyObject*)self, data, self->addr.field_type, self->addr.no_elements, NPY_ARRAY_C_CONTIGUOUS | NPY_ARRAY_ALIGNED | NPY_ARRAY_WRITEABLE);
 }
 
 static PyObject *pyField_getlen(pyField *self)
