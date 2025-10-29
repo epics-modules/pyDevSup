@@ -3,6 +3,6 @@ pyDevSup
 
 EPICS Device support in Python.
 
-See [documentation](http://mdavidsaver.github.io/pyDevSup)
+See [documentation](http://epics-modules.github.io/pyDevSup)
 
-For file [releases](https://github.com/mdavidsaver/pyDevSup/releases)
+For file [releases](https://github.com/epics-modules/pyDevSup/releases)
