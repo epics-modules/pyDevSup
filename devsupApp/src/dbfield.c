@@ -22,11 +22,6 @@
 #endif
 
 #ifdef HAVE_NUMPY
-/* See https://numpy.org/devdocs/reference/c-api/array.html */
-/* Allow compiling on NumPy 1.x */
-#if NPY_ABI_VERSION < 0x02000000
-#define PyArray_DescrProto PyArray_Descr
-#endif
 static const int dbf2np_map[DBF_MENU+1] = {
     NPY_STRING,  // DBF_STRING
     NPY_BYTE,    // DBF_CHAR
@@ -44,7 +39,11 @@ static const int dbf2np_map[DBF_MENU+1] = {
     NPY_INT16,   // DBF_ENUM
     NPY_INT16,   // DBF_MENU
 };
-static PyArray_DescrProto* dbf2np[DBF_MENU+1];
+static PyArray_Descr* dbf2np[DBF_MENU+1];
+#if NPY_ABI_VERSION < 0x02000000
+  #define PyDataType_ELSIZE(descr) ((descr)->elsize)
+  #define PyDataType_SET_ELSIZE(descr, size) (descr)->elsize = size
+#endif
 #endif
 
 typedef struct {
@@ -103,12 +102,7 @@ static PyObject* build_array(PyObject* obj, void *data, unsigned short ftype, un
 
     desc = dbf2np[ftype];
     if(ftype==DBF_STRING) {
-#if NPY_ABI_VERSION >= 0x02000000
-    // See https://github.com/pytorch/pytorch/issues/121798
     PyDataType_SET_ELSIZE(desc, MAX_STRING_SIZE);
-#else
-    desc->elsize = MAX_STRING_SIZE;
-#endif
     }
 
     Py_XINCREF(desc);
@@ -131,7 +125,9 @@ static int assign_array(DBADDR *paddr, PyObject *arr)
     PyArray_Descr *desc = dbf2np[paddr->field_type];
 
     if(paddr->field_type==DBF_STRING &&
-        (PyArray_NDIM(array)!=2 || PyArray_DIM(array,0)>maxlen || PyArray_DIM(array,1)!=MAX_STRING_SIZE))
+        (PyArray_NDIM(array) != 2 || 
+         PyArray_DIM(array, 0) > (npy_intp) maxlen || 
+         PyArray_DIM(array, 1) != MAX_STRING_SIZE))
     {
         PyErr_Format(PyExc_ValueError, "String array has incorrect shape or is too large");
         return 1;

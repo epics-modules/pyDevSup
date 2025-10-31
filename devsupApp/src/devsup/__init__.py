@@ -81,7 +81,6 @@ def _init(iocMain=False):
         _dbapi.dbReadDatabase(dbd_name)
     _dbapi._dbd_setup()
 
-
 def _fini(iocMain=False):
     if iocMain:
         _dbapi.initHookAnnounce(9999) # our magic/fake AtExit hook

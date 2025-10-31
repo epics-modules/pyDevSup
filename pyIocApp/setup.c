@@ -137,7 +137,6 @@ static void pySetupReg(void)
     /* See https://docs.python.org/3/whatsnew/3.9.html */
     PyEval_InitThreads();
 #endif
-
     setupPyPath();
 
     if(PyRun_SimpleString("import devsup\n"
