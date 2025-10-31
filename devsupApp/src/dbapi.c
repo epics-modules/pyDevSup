@@ -289,7 +289,7 @@ static struct PyMethodDef dbapimethod[] = {
 
 #if PY_MAJOR_VERSION >= 3
 static struct PyModuleDef dbapimodule = {
-  PyModuleDef_HEAD_INIT,
+    PyModuleDef_HEAD_INIT,
     "devsup._dbapi",
     NULL,
     -1,

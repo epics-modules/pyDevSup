@@ -43,11 +43,10 @@ class IOCHelper(unittest.TestCase):
         _init(iocMain=False) # load base.dbd
 
         if self.db is not None:
-            with tempfile.NamedTemporaryFile(delete=False) as F:
+            with tempfile.NamedTemporaryFile() as F:
                 F.write(self.db.encode('ascii'))
-                F.close()
+                F.flush()
                 _dbapi.dbReadDatabase(F.name)
-                os.unlink(F.name)
 
         if self.autostart:
             self.iocInit()

@@ -102,7 +102,7 @@ static PyObject* build_array(PyObject* obj, void *data, unsigned short ftype, un
 
     desc = dbf2np[ftype];
     if(ftype==DBF_STRING) {
-    PyDataType_SET_ELSIZE(desc, MAX_STRING_SIZE);
+        PyDataType_SET_ELSIZE(desc, MAX_STRING_SIZE);
     }
 
     Py_XINCREF(desc);
@@ -321,8 +321,8 @@ static PyObject* pyField_putval(pyField *self, PyObject* args)
         fld = PyString_AsString(val);
 #endif
         if(fld) {
-          strncpy(dest, fld, self->addr.field_size);
-          dest[self->addr.field_size-1]='\0';
+            strncpy(dest, fld, self->addr.field_size);
+            dest[self->addr.field_size-1]='\0';
         } else {
           dest[0] = '\0';
         }

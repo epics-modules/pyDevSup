@@ -23,9 +23,6 @@
 #include <alarm.h>
 
 #include "pydevsup.h"
-#ifdef _WIN32
-#define PATH_MAX _MAX_PATH
-#endif
 
 static void cleanupPy(void *junk)
 {
@@ -133,10 +130,8 @@ static void cleanupPrep(initHookState state)
 static void pySetupReg(void)
 {
     Py_InitializeEx(0);
-#if NPY_TARGET_VERSION < NPY_1_9_API_VERSION
-    /* See https://docs.python.org/3/whatsnew/3.9.html */
     PyEval_InitThreads();
-#endif
+
     setupPyPath();
 
     if(PyRun_SimpleString("import devsup\n"
