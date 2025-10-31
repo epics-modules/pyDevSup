@@ -160,6 +160,7 @@ jobs:
           #  container: "python:3.7"
           #  profile: deb10
           #  test: yes
+    steps:
     - uses: actions/checkout@v3
       with:
         submodules: true
