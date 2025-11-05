@@ -164,23 +164,19 @@ static int assign_array(DBADDR *paddr, PyObject *arr)
     }
 
     Py_XINCREF(desc);
-    if(!(aval = PyArray_FromAny(arr, desc, 1, 2, NPY_ARRAY_C_CONTIGUOUS | NPY_ARRAY_ALIGNED | NPY_ARRAY_WRITEABLE, arr))) {
-        Py_XDECREF(desc);
+    if(!(aval = PyArray_FromAny(arr, desc, 1, 2, NPY_ARRAY_C_CONTIGUOUS | NPY_ARRAY_ALIGNED | NPY_ARRAY_WRITEABLE, arr)))
         return 1;
-    }
 
     if(elemsize!=PyArray_ITEMSIZE((PyArrayObject *)aval)) {
         PyErr_Format(PyExc_AssertionError, "item size mismatch %u %u",
-                    elemsize, (unsigned)PyArray_ITEMSIZE((PyArrayObject *)aval) );
+                     elemsize, (unsigned)PyArray_ITEMSIZE((PyArrayObject *)aval));
         Py_DECREF(aval);
-        Py_XDECREF(desc);
         return 1;
     }
 
     memcpy(rawfield, PyArray_GETPTR1((PyArrayObject *)aval, 0), insize*elemsize);
 
     Py_DECREF(aval);
-    Py_XDECREF(desc);
 
     if(paddr->special==SPC_DBADDR &&
        (prset=dbGetRset(paddr)) &&
