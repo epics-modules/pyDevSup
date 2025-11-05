@@ -119,24 +119,25 @@ static int assign_array(DBADDR *paddr, PyObject *arr)
     void *rawfield = paddr->pfield;
     rset *prset;
     PyObject *aval;
+    PyArrayObject * array = (PyArrayObject *)arr;
     unsigned elemsize = dbValueSize(paddr->field_type);
     unsigned long maxlen = paddr->no_elements, insize;
     PyArray_Descr *desc = dbf2np[paddr->field_type];
 
     if(paddr->field_type==DBF_STRING &&
-        (PyArray_NDIM((PyArrayObject *)arr) != 2 || 
-         PyArray_DIM((PyArrayObject *)arr, 0) > (npy_intp) maxlen || 
-         PyArray_DIM((PyArrayObject *)arr, 1) != MAX_STRING_SIZE))
+        (PyArray_NDIM(array) != 2 ||
+         PyArray_DIM(array, 0) > (npy_intp) maxlen ||
+         PyArray_DIM(array, 1) != MAX_STRING_SIZE))
     {
         PyErr_Format(PyExc_ValueError, "String array has incorrect shape or is too large");
         return 1;
 
-    } else if(PyArray_NDIM((PyArrayObject *)arr) != 1 || PyArray_DIM((PyArrayObject *)arr, 0) > (npy_intp) maxlen) {
+    } else if(PyArray_NDIM(array) != 1 || PyArray_DIM(array, 0) > (npy_intp) maxlen) {
         PyErr_Format(PyExc_ValueError, "Array has incorrect shape or is too large");
         return 1;
     }
 
-    insize = PyArray_DIM((PyArrayObject *)arr, 0);
+    insize = PyArray_DIM(array, 0);
 
     if(paddr->special==SPC_DBADDR &&
        (prset=dbGetRset(paddr)) &&
