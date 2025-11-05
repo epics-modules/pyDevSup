@@ -106,7 +106,12 @@ static PyObject* build_array(PyObject* obj, void *data, unsigned short ftype, un
     }
 
     Py_XINCREF(desc);
-    return PyArray_NewFromDescr(&PyArray_Type, desc, ndims, dims, NULL, data, flags, (PyObject*)obj);
+    PyObject *out_arr = PyArray_NewFromDescr(&PyArray_Type, desc, ndims, dims, NULL, data, flags, (PyObject*)obj);
+    if(!out_arr) {
+        Py_XDECREF(desc);
+        return NULL;
+    }
+    return out_arr;
 #else
     PyErr_SetNone(PyExc_NotImplementedError);
     return NULL;
@@ -119,7 +124,7 @@ static int assign_array(DBADDR *paddr, PyObject *arr)
     void *rawfield = paddr->pfield;
     rset *prset;
     PyObject *aval;
-    PyArrayObject * array = (PyArrayObject *)arr;
+    PyArrayObject *array = (PyArrayObject *)arr;
     unsigned elemsize = dbValueSize(paddr->field_type);
     unsigned long maxlen = paddr->no_elements, insize;
     PyArray_Descr *desc = dbf2np[paddr->field_type];
@@ -159,18 +164,23 @@ static int assign_array(DBADDR *paddr, PyObject *arr)
     }
 
     Py_XINCREF(desc);
-    if(!(aval = PyArray_FromAny(arr, desc, 1, 2, NPY_ARRAY_C_CONTIGUOUS | NPY_ARRAY_ALIGNED | NPY_ARRAY_WRITEABLE, arr)))
+    if(!(aval = PyArray_FromAny(arr, desc, 1, 2, NPY_ARRAY_C_CONTIGUOUS | NPY_ARRAY_ALIGNED | NPY_ARRAY_WRITEABLE, arr))) {
+        Py_XDECREF(desc);
         return 1;
+    }
 
     if(elemsize!=PyArray_ITEMSIZE((PyArrayObject *)aval)) {
         PyErr_Format(PyExc_AssertionError, "item size mismatch %u %u",
                     elemsize, (unsigned)PyArray_ITEMSIZE((PyArrayObject *)aval) );
+        Py_DECREF(aval);
+        Py_XDECREF(desc);
         return 1;
     }
 
     memcpy(rawfield, PyArray_GETPTR1((PyArrayObject *)aval, 0), insize*elemsize);
 
     Py_DECREF(aval);
+    Py_XDECREF(desc);
 
     if(paddr->special==SPC_DBADDR &&
        (prset=dbGetRset(paddr)) &&
