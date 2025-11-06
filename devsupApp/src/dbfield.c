@@ -105,13 +105,8 @@ static PyObject* build_array(PyObject* obj, void *data, unsigned short ftype, un
         PyDataType_SET_ELSIZE(desc, MAX_STRING_SIZE);
     }
 
-    Py_XINCREF(desc);
-    PyObject *out_arr = PyArray_NewFromDescr(&PyArray_Type, desc, ndims, dims, NULL, data, flags, (PyObject*)obj);
-    if(!out_arr) {
-        Py_XDECREF(desc);
-        return NULL;
-    }
-    return out_arr;
+    Py_XINCREF(desc); // take a reference for PyArray_NewFromDescr() to steal
+    return PyArray_NewFromDescr(&PyArray_Type, desc, ndims, dims, NULL, data, flags, (PyObject*)obj);
 #else
     PyErr_SetNone(PyExc_NotImplementedError);
     return NULL;
