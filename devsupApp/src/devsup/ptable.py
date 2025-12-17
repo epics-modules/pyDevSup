@@ -164,9 +164,6 @@ class _ParamInstance(object):
         self.stat = NO_ALARM
         self.amsg = ""
         self._groups = set()
-        self._sevr = None
-        self._rec = None
-        self._locked = False
     def _get_value(self):
         return self._value
     def _set_value(self, val):
@@ -237,19 +234,19 @@ class _ParamSupGet(_ParamSupBase):
         """Read a value from the table into the record
         """
         with self.inst.table.lock:
-            nval, alrm = self.inst.value, self.inst.alarm
-            self.inst.table.log.debug('%s -> %s (%s)', self.inst.name, rec.NAME, nval)
+            value, alarm, stat, msg = self.inst.value, self.inst.alarm, self.inst.stat, self.inst.amsg
+            self.inst.table.log.debug('%s -> %s (%s)', self.inst.name, rec.NAME, value)
 
-        if nval is not None:
+        if value is not None:
             if self.vdata is None:
-                self.vfld.putval(nval)
+                self.vfld.putval(value)
             else:
-                if len(nval)>len(self.vdata):
+                if len(value)>len(self.vdata):
                     nval = nval[:len(self.vdata)]
-                self.vdata[:len(nval)] = nval
-                self.vfld.putarraylen(len(nval))
-            if alrm:
-                rec.setSevr(alrm)
+                self.vdata[:len(value)] = value
+                self.vfld.putarraylen(len(value))
+            if alarm:
+                rec.setSevr(alarm, stat, msg)
         else:
             # undefined value
             rec.setSevr(INVALID_ALARM, UDF_ALARM)
@@ -265,9 +262,6 @@ class _ParamSupSet(_ParamSupGet):
         else:
             # sync record to table
             self.inst.table.log.debug('%s <- %s (%s)', self.inst.name, rec.NAME, rec.VAL)
-            if self.inst._sevr is None:
-                self.inst._sevr = rec.field('SEVR')
-            self.inst._rec = rec
             if self.vdata is None:
                 nval = self.vfld.getval()
             else:
@@ -279,21 +273,9 @@ class _ParamSupSet(_ParamSupGet):
                 
                 # Execute actions
                 self.inst._exec(oval)
-                oldsevr = self.inst._sevr.getval()
-                if oldsevr != self.inst.alarm:
-                    rec.setSevr(self.inst.alarm, self.inst.stat, self.inst.amsg)
-                self.inst._locked = False
+                rec.setSevr(self.inst.alarm, self.inst.stat, self.inst.amsg)
             for G in self.inst._groups:
-                for param in G._params:
-                    if self.inst != param and param._sevr is not None:
-                        with param.table.lock:
-                            oldsevr = param._sevr.getval()
-                            if oldsevr != param.alarm:
-                                if param._locked:
-                                    pass
-                                else:
-                                    param._locked = True
-                                    param._rec.scan(sync=False, force=0)
+                G._exec()
 
 class TableBase(object):
     """Base class for all parameter tables.
