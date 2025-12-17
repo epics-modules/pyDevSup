@@ -10,7 +10,7 @@ import threading, inspect
 _tables = {}
 
 from .db import IOScanListThread
-from . import INVALID_ALARM, UDF_ALARM
+from . import INVALID_ALARM, UDF_ALARM, NO_ALARM
 
 __all__ = [
     'Parameter',
@@ -161,6 +161,8 @@ class _ParamInstance(object):
         self.name = name
         self.table, self.scan, self._value = table, scan, None
         self.alarm, self.actions = 0, []
+        self.stat = NO_ALARM
+        self.amsg = ""
         self._groups = set()
     def _get_value(self):
         return self._value
@@ -232,19 +234,19 @@ class _ParamSupGet(_ParamSupBase):
         """Read a value from the table into the record
         """
         with self.inst.table.lock:
-            nval, alrm = self.inst.value, self.inst.alarm
-            self.inst.table.log.debug('%s -> %s (%s)', self.inst.name, rec.NAME, nval)
+            value, alarm, stat, msg = self.inst.value, self.inst.alarm, self.inst.stat, self.inst.amsg
+            self.inst.table.log.debug('%s -> %s (%s)', self.inst.name, rec.NAME, value)
 
-        if nval is not None:
+        if value is not None:
             if self.vdata is None:
-                self.vfld.putval(nval)
+                self.vfld.putval(value)
             else:
-                if len(nval)>len(self.vdata):
+                if len(value)>len(self.vdata):
                     nval = nval[:len(self.vdata)]
-                self.vdata[:len(nval)] = nval
-                self.vfld.putarraylen(len(nval))
-            if alrm:
-                rec.setSevr(alrm)
+                self.vdata[:len(value)] = value
+                self.vfld.putarraylen(len(value))
+            if alarm:
+                rec.setSevr(alarm, stat, msg)
         else:
             # undefined value
             rec.setSevr(INVALID_ALARM, UDF_ALARM)
@@ -271,8 +273,9 @@ class _ParamSupSet(_ParamSupGet):
                 
                 # Execute actions
                 self.inst._exec(oval)
-                for G in self.inst._groups:
-                    G._exec()
+                rec.setSevr(self.inst.alarm, self.inst.stat, self.inst.amsg)
+            for G in self.inst._groups:
+                G._exec()
 
 class TableBase(object):
     """Base class for all parameter tables.
