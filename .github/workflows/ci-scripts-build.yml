@@ -11,8 +11,9 @@ env:
 
 jobs:
   build-base:
-    name: ${{ matrix.base }}/${{ matrix.os }}/${{ matrix.python }}/${{ matrix.extra }}
+    name: ${{ matrix.base }}/${{ matrix.os }}/${{ matrix.profile }}/${{ matrix.python }}/${{ matrix.extra }}
     runs-on: ${{ matrix.os }}
+    container: ${{ matrix.container }}
     # Set environment variables from matrix parameters
     env:
       CMP: ${{ matrix.cmp }}
@@ -33,6 +34,49 @@ jobs:
             base: "7.0"
             python: "3.7"
             profile: deb10
+            container: "python:3.7"
+            test: yes
+
+          - os: ubuntu-latest
+            cmp: gcc
+            configuration: default
+            base: "7.0"
+            python: "3.9"
+            profile: deb11
+            test: yes
+
+          - os: ubuntu-latest
+            cmp: gcc
+            configuration: default
+            base: "7.0"
+            python: "3.11"
+            profile: deb12
+            test: yes
+
+          - os: ubuntu-latest
+            cmp: gcc
+            configuration: default
+            base: "7.0"
+            python: "3.13"
+            profile: deb13
+            test: yes
+
+          - os: ubuntu-latest
+            cmp: gcc
+            configuration: default
+            base: "7.0"
+            python: "3.6"
+            container: "python:3.6"
+            profile: latest
+            test: yes
+
+          - os: ubuntu-latest
+            cmp: gcc
+            configuration: default
+            base: "7.0"
+            python: "3.7"
+            container: "python:3.7"
+            profile: latest
             test: yes
 
           - os: ubuntu-latest
@@ -59,6 +103,30 @@ jobs:
             profile: latest
             test: yes
 
+          - os: ubuntu-latest
+            cmp: gcc
+            configuration: default
+            base: "7.0"
+            python: "3.11"
+            profile: latest
+            test: yes
+
+          - os: ubuntu-latest
+            cmp: gcc
+            configuration: default
+            base: "7.0"
+            python: "3.12"
+            profile: latest
+            test: yes
+
+          - os: ubuntu-latest
+            cmp: gcc
+            configuration: default
+            base: "7.0"
+            python: "3.13"
+            profile: latest
+            test: yes
+
           - os: macos-latest
             cmp: gcc
             configuration: default
@@ -72,7 +140,16 @@ jobs:
             configuration: default
             base: "3.15"
             python: "3.7"
+            container: "python:3.7"
             profile: deb10
+            test: yes
+
+          - os: ubuntu-latest
+            cmp: gcc
+            configuration: default
+            base: "3.15"
+            python: "3.13"
+            profile: deb13
             test: yes
 
           - os: ubuntu-latest
@@ -80,12 +157,14 @@ jobs:
             configuration: default
             base: "3.14"
             python: "3.7"
+            container: "python:3.7"
             profile: deb10
     steps:
     - uses: actions/checkout@v3
       with:
         submodules: true
     - name: Set up Python ${{ matrix.python }}
+      if: ${{ !matrix.container }}
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python }}

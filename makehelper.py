@@ -26,15 +26,30 @@ else:
         pass
     out = open(sys.argv[1], 'w')
 
-from distutils.sysconfig import get_config_var, get_python_inc
+"""
+3.2      sysconfig
+3.10     sysconfig.get_path
+3.10.13  distutils is deprecated.
+3.12     distutils was removed.
+"""
+if sys.version_info >= (3,10,):
+    from sysconfig import get_config_var, get_path
+    incdirs = [get_path("include")]
+else:
+    from distutils.sysconfig import get_config_var, get_python_inc
+    incdirs = [get_python_inc()]
 
-incdirs = [get_python_inc()]
 libdir = get_config_var('LIBDIR') or ''
 
 have_np='NO'
+
+"""
+numpy 1.18, numpy.get_include()
+"""
 try:
-    from numpy.distutils.misc_util import get_numpy_include_dirs
-    incdirs = get_numpy_include_dirs()+incdirs
+    from numpy import get_include
+    numpy_dir = [get_include()]
+    incdirs = numpy_dir+incdirs
     have_np='YES'
 except ImportError:
     pass

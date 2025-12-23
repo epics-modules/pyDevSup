@@ -40,6 +40,10 @@ static const int dbf2np_map[DBF_MENU+1] = {
     NPY_INT16,   // DBF_MENU
 };
 static PyArray_Descr* dbf2np[DBF_MENU+1];
+#if NPY_ABI_VERSION < 0x02000000
+  #define PyDataType_ELSIZE(descr) ((descr)->elsize)
+  #define PyDataType_SET_ELSIZE(descr, size) (descr)->elsize = size
+#endif
 #endif
 
 typedef struct {
@@ -98,10 +102,10 @@ static PyObject* build_array(PyObject* obj, void *data, unsigned short ftype, un
 
     desc = dbf2np[ftype];
     if(ftype==DBF_STRING) {
-        desc->elsize = MAX_STRING_SIZE;
+        PyDataType_SET_ELSIZE(desc, MAX_STRING_SIZE);
     }
 
-    Py_XINCREF(desc);
+    Py_XINCREF(desc); // take a reference for PyArray_NewFromDescr() to steal
     return PyArray_NewFromDescr(&PyArray_Type, desc, ndims, dims, NULL, data, flags, (PyObject*)obj);
 #else
     PyErr_SetNone(PyExc_NotImplementedError);
@@ -115,22 +119,25 @@ static int assign_array(DBADDR *paddr, PyObject *arr)
     void *rawfield = paddr->pfield;
     rset *prset;
     PyObject *aval;
+    PyArrayObject *array = (PyArrayObject *)arr;
     unsigned elemsize = dbValueSize(paddr->field_type);
     unsigned long maxlen = paddr->no_elements, insize;
     PyArray_Descr *desc = dbf2np[paddr->field_type];
 
     if(paddr->field_type==DBF_STRING &&
-        (PyArray_NDIM(arr)!=2 || PyArray_DIM(arr,0)>maxlen || PyArray_DIM(arr,1)!=MAX_STRING_SIZE))
+        (PyArray_NDIM(array) != 2 ||
+         PyArray_DIM(array, 0) > (npy_intp) maxlen ||
+         PyArray_DIM(array, 1) != MAX_STRING_SIZE))
     {
         PyErr_Format(PyExc_ValueError, "String array has incorrect shape or is too large");
         return 1;
 
-    } else if(PyArray_NDIM(arr)!=1 || PyArray_DIM(arr,0)>maxlen) {
+    } else if(PyArray_NDIM(array) != 1 || PyArray_DIM(array, 0) > (npy_intp) maxlen) {
         PyErr_Format(PyExc_ValueError, "Array has incorrect shape or is too large");
         return 1;
     }
 
-    insize = PyArray_DIM(arr, 0);
+    insize = PyArray_DIM(array, 0);
 
     if(paddr->special==SPC_DBADDR &&
        (prset=dbGetRset(paddr)) &&
@@ -152,16 +159,17 @@ static int assign_array(DBADDR *paddr, PyObject *arr)
     }
 
     Py_XINCREF(desc);
-    if(!(aval = PyArray_FromAny(arr, desc, 1, 2, NPY_CARRAY, arr)))
+    if(!(aval = PyArray_FromAny(arr, desc, 1, 2, NPY_ARRAY_C_CONTIGUOUS | NPY_ARRAY_ALIGNED | NPY_ARRAY_WRITEABLE, arr)))
         return 1;
 
-    if(elemsize!=PyArray_ITEMSIZE(aval)) {
+    if(elemsize!=PyArray_ITEMSIZE((PyArrayObject *)aval)) {
         PyErr_Format(PyExc_AssertionError, "item size mismatch %u %u",
-                    elemsize, (unsigned)PyArray_ITEMSIZE(aval) );
+                     elemsize, (unsigned)PyArray_ITEMSIZE((PyArrayObject *)aval));
+        Py_DECREF(aval);
         return 1;
     }
 
-    memcpy(rawfield, PyArray_GETPTR1(aval, 0), insize*elemsize);
+    memcpy(rawfield, PyArray_GETPTR1((PyArrayObject *)aval, 0), insize*elemsize);
 
     Py_DECREF(aval);
 
@@ -207,7 +215,7 @@ static PyObject* pyField_getval(pyField *self)
 
         if(self->addr.no_elements>1) {
             return build_array((PyObject*)self, rawfield, self->addr.field_type,
-                               noe, NPY_CARRAY_RO);
+                               noe, NPY_ARRAY_C_CONTIGUOUS | NPY_ARRAY_ALIGNED);
         }
     }
 
@@ -362,7 +370,7 @@ static PyObject *pyField_getarray(pyField *self)
     } else
         data = self->addr.pfield;
 
-    return build_array((PyObject*)self, data, self->addr.field_type, self->addr.no_elements, NPY_CARRAY);
+    return build_array((PyObject*)self, data, self->addr.field_type, self->addr.no_elements, NPY_ARRAY_C_CONTIGUOUS | NPY_ARRAY_ALIGNED | NPY_ARRAY_WRITEABLE);
 }
 
 static PyObject *pyField_getlen(pyField *self)
