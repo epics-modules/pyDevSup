@@ -164,6 +164,69 @@ class TestDset(IOCHelper):
             self.assertEqual(rec.VAL, 1)
             self.assertEqual(rec.UDF, 0)
             
+class TestAlarmScan(IOCHelper):
+    db = """
+    record(longin, "rec:inalarm:amsg") {
+        field(PINI, "YES")
+    }
+    record(longin, "rec:inalarm:plain") {
+        field(PINI, "YES")
+    }
+    record(longout, "rec:outalarm:amsg") {
+        field(PINI, "YES")
+        field(VAL,  "0")
+    }
+    record(longout, "rec:outalarm:plain") {
+        field(PINI, "YES")
+        field(VAL,  "0")
+    }
+    """
+    def test_setin_severity_message(self):
+        rec = getRecord("rec:inalarm:amsg")
+        with rec:
+            self.assertEqual(rec.SEVR, _dbapi.NO_ALARM)
+            self.assertEqual(rec.STAT, _dbapi.NO_ALARM)
+            if  _dbapi.epicsver[:4] >= (7, 0, 6, 0):
+                self.assertEqual(rec.AMSG, "")
+            self.assertEqual(rec.setSevr(_dbapi.MAJOR_ALARM, _dbapi.HIHI_ALARM, amsg="Meaningful input alarm message"), None)
+            self.assertEqual(rec.scan(sync=True), 0)
+            self.assertEqual(rec.STAT, _dbapi.HIHI_ALARM)
+            if  _dbapi.epicsver[:4] >= (7, 0, 6, 0):
+                self.assertEqual(rec.AMSG, "Meaningful input alarm message")
+                
+    def test_setin_severity_without_message(self):
+        rec = getRecord("rec:inalarm:plain")
+        with rec:
+            self.assertEqual(rec.SEVR, _dbapi.NO_ALARM)
+            self.assertEqual(rec.STAT, _dbapi.NO_ALARM)
+            self.assertEqual(rec.setSevr(_dbapi.MAJOR_ALARM, _dbapi.COMM_ALARM), None)
+            self.assertEqual(rec.scan(sync=True), 0)
+            self.assertEqual(rec.SEVR, _dbapi.MAJOR_ALARM)
+            self.assertEqual(rec.STAT, _dbapi.COMM_ALARM)
+
+    def test_setout_severity_message(self):
+        rec = getRecord("rec:outalarm:amsg")
+        with rec:
+            self.assertEqual(rec.SEVR, _dbapi.NO_ALARM)
+            self.assertEqual(rec.STAT, _dbapi.NO_ALARM)
+            if  _dbapi.epicsver[:4] >= (7, 0, 6, 0):
+                self.assertEqual(rec.AMSG, "")
+            self.assertEqual(rec.setSevr(_dbapi.MAJOR_ALARM, _dbapi.HIHI_ALARM, amsg="Meaningful output alarm message"), None)
+            self.assertEqual(rec.scan(sync=True), 0)
+            self.assertEqual(rec.STAT, _dbapi.HIHI_ALARM)
+            if  _dbapi.epicsver[:4] >= (7, 0, 6, 0):
+                self.assertEqual(rec.AMSG, "Meaningful output alarm message")
+                
+    def test_setout_severity_without_message(self):
+        rec = getRecord("rec:outalarm:plain")
+        with rec:
+            self.assertEqual(rec.SEVR, _dbapi.NO_ALARM)
+            self.assertEqual(rec.STAT, _dbapi.NO_ALARM)
+            self.assertEqual(rec.setSevr(_dbapi.MAJOR_ALARM, _dbapi.COMM_ALARM), None)
+            self.assertEqual(rec.scan(sync=True), 0)
+            self.assertEqual(rec.SEVR, _dbapi.MAJOR_ALARM)
+            self.assertEqual(rec.STAT, _dbapi.COMM_ALARM)
+
 class TestLongStringField(IOCHelper):
     db = """
         record(lsi, "rec:lsi") {

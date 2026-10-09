@@ -10,7 +10,7 @@ import threading, inspect
 _tables = {}
 
 from .db import IOScanListThread
-from . import INVALID_ALARM, UDF_ALARM
+from . import INVALID_ALARM, UDF_ALARM, COMM_ALARM
 
 __all__ = [
     'Parameter',
@@ -159,20 +159,16 @@ class _ParamInstance(object):
     """
     def __init__(self, table, name, scan):
         self.name = name
-        self.table, self.scan, self._value = table, scan, None
+        self.table, self.scan, self.value = table, scan, None
         self.alarm, self.actions = 0, []
+        self.stat = None
+        self.amsg = None
         self._groups = set()
-    def _get_value(self):
-        return self._value
-    def _set_value(self, val):
-        self._value = val
-        self.alarm = 3 if val is None else 0
-    value = property(_get_value, _set_value, doc="The current parameter value")
     @property
     def isvalid(self):
         """Is the parameter value valid (not None and no INVALID_ALARM)
         """
-        return self.alarm < INVALID_ALARM and self._value is not None
+        return self.alarm < INVALID_ALARM and self.value is not None
     def notify(self):
         """Notify attached records of parameter value change.
         A no-op unless Parameter(iointr=True)
@@ -216,11 +212,16 @@ class _ParamSupBase(object):
         self.inst, self.info = inst, info
         # Determine which field to use to store the value
         fname = rec.info('pyfield','VAL')
+        # This value is set by:
+        #     info("pyfield", "RVAL")
+        # in the db file record.
+        # It is used as 'rawsupport' in dbdset.c.
         self.raw = fname!='RVAL'
         self.vfld = rec.field(fname)
         self.vdata = None
         if len(self.vfld)>1:
             self.vdata = self.vfld.getarray()
+            
     def detach(self, rec):
         pass
     def allowScan(self, rec):
@@ -232,19 +233,23 @@ class _ParamSupGet(_ParamSupBase):
         """Read a value from the table into the record
         """
         with self.inst.table.lock:
-            nval, alrm = self.inst.value, self.inst.alarm
-            self.inst.table.log.debug('%s -> %s (%s)', self.inst.name, rec.NAME, nval)
+            value, alarm, stat, amsg = self.inst.value, self.inst.alarm, self.inst.stat, self.inst.amsg
+            self.inst.table.log.debug('%s -> %s (%s)', self.inst.name, rec.NAME, value)
+            if alarm and value is not None:
+                # This resets the alarm status after the current sucessful transfer.
+                self.inst.alarm = 0
 
-        if nval is not None:
+        if value is not None:
+            if stat is None:
+                stat = COMM_ALARM
             if self.vdata is None:
-                self.vfld.putval(nval)
+                self.vfld.putval(value)
             else:
-                if len(nval)>len(self.vdata):
-                    nval = nval[:len(self.vdata)]
-                self.vdata[:len(nval)] = nval
-                self.vfld.putarraylen(len(nval))
-            if alrm:
-                rec.setSevr(alrm)
+                if len(value)>len(self.vdata):
+                    value = value[:len(self.vdata)]
+                self.vdata[:len(value)] = value
+                self.vfld.putarraylen(len(value))
+            rec.setSevr(alarm, stat, amsg)
         else:
             # undefined value
             rec.setSevr(INVALID_ALARM, UDF_ALARM)
@@ -261,19 +266,22 @@ class _ParamSupSet(_ParamSupGet):
             # sync record to table
             self.inst.table.log.debug('%s <- %s (%s)', self.inst.name, rec.NAME, rec.VAL)
             if self.vdata is None:
-                nval = self.vfld.getval()
+                value = self.vfld.getval()
             else:
                 # A copy is made which can be used without locking the record
-                nval = self.vdata[:self.vfld.getarraylen()].copy()
+                value = self.vdata[:self.vfld.getarraylen()].copy()
 
             with self.inst.table.lock:
-                oval, self.inst.value = self.inst.value, nval
-                
+                oval, self.inst.value = self.inst.value, value
                 # Execute actions
                 self.inst._exec(oval)
+                stat = self.inst.stat
+                if stat is None:
+                    stat = COMM_ALARM
+                rec.setSevr(self.inst.alarm, stat, self.inst.amsg)
                 for G in self.inst._groups:
                     G._exec()
-
+                    
 class TableBase(object):
     """Base class for all parameter tables.
     
