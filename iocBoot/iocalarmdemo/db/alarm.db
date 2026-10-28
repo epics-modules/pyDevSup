@@ -1,0 +1,240 @@
+# Output parameters
+record(calcout, "CALCOUT") {
+    field(PINI, ${PINI="NO"})
+    field(DTYP, "Python Device")
+    field(OUT,  "@devsup.ptable alarm set calcout")
+    # No RVAL field
+    ${HASHTAG="#"}field(VAL,  "1")
+    field(INPA, "CALCOUT")
+    field(CALC, "A+1")
+    field(SCAN, "5 second")
+}
+
+record(aao, "AAO") {
+    field(PINI, ${PINI="NO"})
+    # NB, an array needs to have at least two elements. Or it is not an array.
+    field(NELM, "2")
+    field(DTYP, "Python Device")
+    field(FTVL, "LONG")
+    # No RVAL field
+    field(OUT,  "@devsup.ptable alarm set aao")
+    # Cannot set VAL
+    #field(VAL,  "2")
+}
+
+record(ao, "AO") {
+    field(PINI, ${PINI="NO"})
+    field(DTYP, "Python Device")
+    field(OUT,  "@devsup.ptable alarm set ao")
+    # Has RVAL field but this is unsuitable for output use
+    ${HASHTAG="#"}field(VAL,  "3")
+}
+
+record(bo, "BO") {
+    field(PINI, ${PINI="NO"})
+    field(DTYP, "Python Device")
+    field(ZNAM, "OFF")
+    field(ONAM, "ON")
+    field(OUT,  "@devsup.ptable alarm set bo")
+    # Has RVAL field but this is unsuitable for output use
+    ${HASHTAG="#"}field(${RVAL="VAL"},  "4")
+}
+
+record(int64out, "INT64OUT") {
+    field(PINI, ${PINI="NO"})
+    field(DTYP, "Python Device")
+    field(OUT,  "@devsup.ptable alarm set int64out")
+    # No RVAL field
+    ${HASHTAG="#"}field(VAL,  "5")
+}
+
+record(longout, "LONGOUT") {
+    field(PINI, ${PINI="NO"})
+    field(DTYP, "Python Device")
+    field(OUT,  "@devsup.ptable alarm set longout")
+    # No RVAL field
+    ${HASHTAG="#"}field("VAL",  "6")
+}
+
+record(lso, "LSO") {
+    field(PINI, ${PINI="NO"})
+    field(DTYP, "Python Device")
+    field(OUT,  "@devsup.ptable alarm set lso")
+    # No RVAL field
+    # Cannot set VAL
+    #field("VAL", "7")
+}
+
+record(mbbo, "MBBO") {
+    field(PINI, ${PINI="NO"})
+    field(DTYP, "Python Device")
+    field(OUT,  "@devsup.ptable alarm set mbbo")
+    field(ZRST, "Zero")
+    field(ONST, "One")
+    field(TWST, "Two")
+    field(THST, "Three")
+    field(FRST, "Four")
+    field(FVST, "Five")
+    field(SXST, "Six")
+    field(SVST, "Seven")
+    field(EIST, "Eight")
+    field(NIST, "Nine")
+    field(TEST, "Ten")
+    field(ELST, "Eleven")
+    field(TVST, "Twelve")
+    field(TTST, "Thirteen")
+    field(FTST, "Fourteen")
+    field(FFST, "Fifteen")
+    # Has RVAL field but this is unsuitable for output use
+    ${HASHTAG="#"}field(VAL,  "8")
+}
+
+record(mbboDirect, "MBBODIRECT") {
+    field(PINI, ${PINI="NO"})
+    field(DTYP, "Python Device")
+    field(OUT,  "@devsup.ptable alarm set mbboDirect")
+    # Has RVAL field but this is unsuitable for output use
+    ${HASHTAG="#"}field(VAL,  "9")
+}
+
+record(stringout, "STRINGOUT") {
+    field(PINI, ${PINI="NO"})
+    field(DTYP, "Python Device")
+    field(OUT,  "@devsup.ptable alarm set stringout")
+    # No RVAL field
+    ${HASHTAG="#"}field(VAL,  "10")
+}
+
+# Input parameters
+record(aai, "AAI") {
+    field(PINI, ${PINI="NO"})
+    field(DTYP, "Python Device")
+    # NB, an array needs to have at least two elements. Or it is not an array.
+    field(NELM, "2")
+    field(FTVL, "LONG")
+    field(INP,  "@devsup.ptable alarm get aai")
+    # No RVAL field
+    # Cannot set VAL
+    #field(VAL,  "{11}")
+    field(SCAN, "I/O Intr")
+}
+
+record(ai, "AI") {
+    field(PINI, ${PINI="NO"})
+    field(DTYP, "Python Device")
+    field(INP,  "@devsup.ptable alarm get ai")
+    info("pyfield", ${RVAL="VAL"})
+    ${HASHTAG="#"}field(VAL,  "12")
+    field(SCAN, "I/O Intr")
+}
+
+record(bi, "BI") {
+    field(PINI, ${PINI="NO"})
+    field(DTYP, "Python Device")
+    field(INP,  "@devsup.ptable alarm get bi")
+    info("pyfield", ${RVAL="VAL"})
+    ${HASHTAG="#"}field(VAL,  "13")
+    field(ZNAM, "OFF")
+    field(ONAM, "ON")
+    field(SCAN, "I/O Intr")
+}
+
+record(int64in, "INT64IN") {
+    field(PINI, ${PINI="NO"})
+    field(DTYP, "Python Device")
+    field(INP,  "@devsup.ptable alarm get int64in")
+    # No RVAL field
+    ${HASHTAG="#"}field(VAL,  "14")
+    field(SCAN, "I/O Intr")
+}
+
+record(longin, "LONGIN") {
+    field(PINI, ${PINI="NO"})
+    field(DTYP, "Python Device")
+    field(INP,  "@devsup.ptable alarm get longin")
+    # No RVAL field
+    ${HASHTAG="#"}field(VAL,  "15")
+    field(SCAN, "I/O Intr")
+}
+
+record(lsi, "LSI") {
+    field(PINI, ${PINI="NO"})
+    field(DTYP, "Python Device")
+    field(INP,  "@devsup.ptable alarm get lsi")
+    # No RVAL field
+    # Cannot set VAL
+    #field(VAL,  "16")
+    field(SCAN, "I/O Intr")
+}
+
+record(mbbiDirect, "MBBIDIRECT") {
+    field(PINI, ${PINI="NO"})
+    field(DTYP, "Python Device")
+    field(INP,  "@devsup.ptable alarm get mbbiDirect")
+    info("pyfield", ${RVAL="VAL"})
+    ${HASHTAG="#"}field(VAL,  "17")
+    field(SCAN, "I/O Intr")
+}
+
+record(mbbi, "MBBI") {
+    field(PINI, ${PINI="NO"})
+    field(DTYP, "Python Device")
+    field(INP,  "@devsup.ptable alarm get mbbi")
+    field(ZRVL, 0)
+    field(ONVL, 1)
+    field(TWVL, 2)
+    field(THVL, 3)
+    field(FRVL, 4)
+    field(FVVL, 5)
+    field(SXVL, 6)
+    field(SVVL, 7)
+    field(EIVL, 8)
+    field(NIVL, 9)
+    field(TEVL, 10)
+    field(ELVL, 11)
+    field(TVVL, 12)
+    field(TTVL, 13)
+    field(FTVL, 14)
+    field(FFVL, 15)
+    field(ZRST, "Zero")
+    field(ONST, "One")
+    field(TWST, "Two")
+    field(THST, "Three")
+    field(FRST, "Four")
+    field(FVST, "Five")
+    field(SXST, "Six")
+    field(SVST, "Seven")
+    field(EIST, "Eight")
+    field(NIST, "Nine")
+    field(TEST, "Ten")
+    field(ELST, "Eleven")
+    field(TVST, "Twelve")
+    field(TTST, "Thirteen")
+    field(FTST, "Fourteen")
+    field(FFST, "Fifteen")
+    info("pyfield", ${RVAL="VAL"})
+    ${HASHTAG="#"}field(VAL,  "18")
+    field(SCAN, "I/O Intr")
+}
+
+record(stringin, "STRINGIN") {
+    field(PINI, ${PINI="NO"})
+    field(DTYP, "Python Device")
+    field(INP,  "@devsup.ptable alarm get stringin")
+    # No RVAL field
+    ${HASHTAG="#"}field(VAL,  "19")
+    field(SCAN, "I/O Intr")
+}
+
+record(waveform, "WAVEFORM") {
+    field(PINI, ${PINI="NO"})
+    field(DTYP, "Python Device")
+    field(FTVL, "LONG")
+    # NB, an array needs to have at least two elements. Or it is not an array.
+    field(NELM, "2")
+    field(INP,  "@devsup.ptable alarm get waveform")
+    # No RVAL field
+    # Cannot set VAL
+    #field(VAL,  "20")
+    field(SCAN, "I/O Intr")
+}
