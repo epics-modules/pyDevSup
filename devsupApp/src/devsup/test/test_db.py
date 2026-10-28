@@ -35,7 +35,7 @@ class TestScan(IOCHelper):
         with tgt:
             self.assertEqual(tgt.VAL, 0)
 
-        src.scan(sync=True) # lock and dbProcess() on this thread
+        self.assertEqual(src.scan(sync=True), 0) # lock and dbProcess() on this thread
 
         with tgt:
             self.assertEqual(tgt.VAL, 42)
@@ -122,13 +122,13 @@ class TestField(IOCHelper):
             src.VAL = numpy.arange(5)
             assert_array_almost_equal(src.VAL, numpy.arange(5))
             if tgt is not None:
-                src.scan(sync=True)
+                self.assertEqual(src.scan(sync=True), 0)
                 assert_array_almost_equal(tgt.VAL, src.VAL)
 
             src.VAL = numpy.arange(10)
             assert_array_almost_equal(src.VAL, numpy.arange(10))
             if tgt is not None:
-                src.scan(sync=True)
+                self.assertEqual(src.scan(sync=True), 0)
                 assert_array_almost_equal(tgt.VAL, src.VAL)
 
             with self.assertRaises(ValueError):
@@ -137,7 +137,7 @@ class TestField(IOCHelper):
             src.VAL = []
             assert_array_almost_equal(src.VAL, [])
             if tgt is not None:
-                src.scan(sync=True)
+                self.assertEqual(src.scan(sync=True), 0)
                 assert_array_almost_equal(tgt.VAL, src.VAL)
 
             # in-place modification
@@ -150,7 +150,7 @@ class TestField(IOCHelper):
 
             assert_array_almost_equal(src.VAL, [0.0, 1.0, 42.0, 3.0, 4.0])
             if tgt is not None:
-                src.scan(sync=True)
+                self.assertEqual(src.scan(sync=True), 0)
                 assert_array_almost_equal(tgt.VAL, src.VAL)
             
     def array_long_test(self, src, tgt=None):
@@ -162,13 +162,13 @@ class TestField(IOCHelper):
             src.VAL = range(5)
             assert_array_equal(src.VAL, range(5))
             if tgt is not None:
-                src.scan(sync=True)
+                self.assertEqual(src.scan(sync=True), 0)
                 assert_array_equal(tgt.VAL, src.VAL)
 
             src.VAL = range(10)
             assert_array_equal(src.VAL, range(10))
             if tgt is not None:
-                src.scan(sync=True)
+                self.assertEqual(src.scan(sync=True), 0)
                 assert_array_equal(tgt.VAL, src.VAL)
 
             with self.assertRaises(ValueError):
@@ -177,7 +177,7 @@ class TestField(IOCHelper):
             src.VAL = []
             assert_array_equal(src.VAL, [])
             if tgt is not None:
-                src.scan(sync=True)
+                self.assertEqual(src.scan(sync=True), 0)
                 assert_array_equal(tgt.VAL, src.VAL)
 
             # in-place modification
@@ -190,7 +190,7 @@ class TestField(IOCHelper):
 
             assert_array_equal(src.VAL, [0, 1, 42, 3, 4])
             if tgt is not None:
-                src.scan(sync=True)
+                self.assertEqual(src.scan(sync=True), 0)
                 assert_array_equal(tgt.VAL, src.VAL)
 
     def test_wf_float(self):
@@ -256,7 +256,7 @@ class TestDset(IOCHelper):
             self.assertEqual(rec.VAL, 0)
             self.assertEqual(rec.UDF, 1)
 
-        rec.scan(sync=True)
+        self.assertEqual(rec.scan(sync=True), 0)
 
         with rec:
             self.assertEqual(rec.VAL, 1)
@@ -362,7 +362,7 @@ class TestLongStringField(IOCHelper):
             lsi.VAL = "This is a really long string which should NOT be truncated"
             self.assertEqual(lsi.VAL, "This is a really long string which should NOT be truncated")
         
-        lso.scan()
+        self.assertEqual(lso.scan(sync=True), 0)
         time.sleep(0.01) # The linked value needs a small amount of time to update.
 
         with lso:
@@ -401,7 +401,7 @@ class TestInt64Field(IOCHelper):
             in64.VAL = 0x7FFFFFFFFFFFFFFF
             self.assertEqual(in64.VAL, 0x7FFFFFFFFFFFFFFF)
         
-        out64.scan()
+        self.assertEqual(out64.scan(sync=True), 0)
         time.sleep(0.01) # The linked value needs a small amount of time to update.
 
         with out64:

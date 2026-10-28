@@ -43,7 +43,7 @@ class DataWatcher(object):
 
   # disable automatic RVAL -> VAL conversion.
   # We will update VAL ourselves.
-  raw = True
+  raw = False
 
   def __init__(self, rec, args):
     station, name = args.split(None, 1)

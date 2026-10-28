@@ -42,7 +42,7 @@ class UnitWorker(object):
 
 class UnitSupport(object):
 
-    raw = True
+    raw = False
 
     def __init__(self, rec, args):
         worker, self.unit = args.split(None, 1)

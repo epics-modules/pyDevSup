@@ -225,11 +225,12 @@ class _ParamSupBase(object):
         #     info("pyfield", "RVAL")
         # in the db file record.
         # It is used as 'rawsupport' in dbdset.c.
-        self.raw = fname!='RVAL'
+        self.raw = fname=='RVAL'
         self.vfld = rec.field(fname)
         self.vdata = None
         if len(self.vfld)>1:
             self.vdata = self.vfld.getarray()
+        self.udf = rec.field("UDF")
             
     def detach(self, rec):
         pass
@@ -244,10 +245,14 @@ class _ParamSupGet(_ParamSupBase):
         with self.inst.table.lock:
             value, alarm, stat, amsg = self.inst.value, self.inst.alarm, self.inst.stat, self.inst.amsg
             self.inst.table.log.debug('%s -> %s (%s)', self.inst.name, rec.NAME, value)
-
-        if value is not None:
             if stat is None:
                 stat = COMM_ALARM
+            if value is not None:
+                if self.udf.getval():
+                    # Some record types only clear the UDF field if RVAL processing is used.
+                    self.udf.putval(0)
+        
+        if value is not None:
             if self.vdata is None:
                 self.vfld.putval(value)
             else:
@@ -284,7 +289,14 @@ class _ParamSupSet(_ParamSupGet):
                 stat = self.inst.stat
                 if stat is None:
                     stat = COMM_ALARM
-                rec.setSevr(self.inst.alarm, stat, self.inst.amsg)
+                if self.inst.value is not None:
+                    if self.udf.getval():
+                        # Some record types only clear the UDF field if RVAL processing is used.
+                        self.udf.putval(0)
+                    rec.setSevr(self.inst.alarm, stat, self.inst.amsg)
+                else:
+                    # undefined value
+                    rec.setSevr(INVALID_ALARM, UDF_ALARM)
                 for G in self.inst._groups:
                     G._exec()
                     
