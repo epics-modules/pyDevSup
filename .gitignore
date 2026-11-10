@@ -36,3 +36,4 @@ python*
 # extras
 *~
 *.dbl
+iocBoot/iocalarmdemo/dbDumpRecord.log
