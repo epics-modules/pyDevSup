@@ -57,10 +57,9 @@ The following should be added to individual EPICS Makefiles. ::
 
   TOP=../..
   include $(TOP)/configure/CONFIG
-  include $(PYDEVSUP)/configure/CONFIG_PY
   ...
   include $(TOP)/configure/RULES
-  include $(PYDEVSUP)/configure/RULES_PY
+Note that CONFIG_PY and RULES_PY are now included by CONFIG and RULES and should not be included explicitly.
 
 This will add or amend several make variables.  The ``USR_*FLAGS`` variables
 may be extended with appropriate flags for building python modules.  The ``PY_VER``

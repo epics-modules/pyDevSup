@@ -6,7 +6,7 @@ Emits something like the following
 
 PY_OK := YES  # indicates success of this script
 HAVE_NUMPY := YES/NO
-PY_VER := 2.6
+PY_VER := 3.6
 PY_INCDIRS := /path ...
 PY_LIBDIRS := /path ...
 """

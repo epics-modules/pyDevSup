@@ -1,12 +1,19 @@
 ifneq ($(T_A),)
+ifeq (,$(wildcard $(INSTALL_LOCATION)/cfg/os/CONFIG_PY.Common.$(T_A)))
+$(warning cfg/os/CONFIG_PY.Common.$(T_A) is not found)
+else
 
-PYMODULE ?= YES
+ifeq ($(PYTHON),)
+# Older EPICS base does not do this automatically.
+-include $(TOP)/configure/CONFIG_SITE.local
+endif
 
 ifeq ($(PYTHON),)
 $(error Must set PYTHON to select a python version)
 endif
 
 -include $(dir $(lastword $(MAKEFILE_LIST)))/os/CONFIG_PY.$(EPICS_HOST_ARCH).Common
+include $(INSTALL_LOCATION)/cfg/os/CONFIG_PY.Common.$(T_A)
 -include $(dir $(lastword $(MAKEFILE_LIST)))/os/CONFIG_PY.Common.$(T_A)
 -include $(dir $(lastword $(MAKEFILE_LIST)))/os/CONFIG_PY.$(EPICS_HOST_ARCH).$(T_A)
 
@@ -34,24 +41,5 @@ endif
 
 PY_INSTALL_DIR = $(INSTALL_LOCATION)/python$(PY_LD_VER)/$(T_A)
 
-ifneq ($(PYMODULE),NO)
-
-# Python loadables have no prefix (eg 'pymod.so')
-# and are installed alongsize .py files
-LOADABLE_SHRLIB_PREFIX =
-
-INSTALL_SHRLIB = $(PY_INSTALL_DIR)
-
-ifeq ($(OS_CLASS),Darwin)
-# need -undefined dynamic_lookup
-LOADABLE_SHRLIB_LDFLAGS = -bundle -flat_namespace -undefined dynamic_lookup
-LOADABLE_SHRLIB_SUFFIX = .so
-endif
-
-ifeq ($(OS_CLASS),WIN32)
-SHRLIB_SUFFIX_BASE = .pyd
-endif
-
-endif
-
-endif
+endif # CONFIG_PY.Common.$(T_A)
+endif # ifneq ($(T_A),)
