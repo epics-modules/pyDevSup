@@ -20,7 +20,7 @@ The reason is that EPICS database defintions are created in two modules:
    Consequently the softIocPy module does not know what a 'Python Device' is.
    In a shared library build there is ony one database, held by the underlying EPICS base library.
 
-The source can be found at http://github.com/epics-modules/pyDevSup
+The source can be found at https://github.com/epics-modules/pyDevSup
 
 File releases are available at https://github.com/epics-modules/pyDevSup/releases
 

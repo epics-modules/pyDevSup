@@ -1,12 +1,10 @@
 TOP=../..
 
 include $(TOP)/configure/CONFIG
-include $(TOP)/configure/CONFIG_PY
+include $(TOP)/configure/CONFIG_PY_MODULE
 #----------------------------------------
 #  ADD MACRO DEFINITIONS AFTER THIS LINE
 #=============================
-
-INSTALL_SHRLIB = $(PY_INSTALL_DIR)/devsup
 
 LOADABLE_LIBRARY_HOST += _dbapi
 
@@ -51,7 +49,6 @@ PY += devsup/test/test_db.py
 #===========================
 
 include $(TOP)/configure/RULES
-include $(TOP)/configure/RULES_PY
 #----------------------------------------
 #  ADD RULES AFTER THIS LINE
 
@@ -67,7 +64,7 @@ pyconfig:
 ifneq (,$(T_A))
 nose:
 ifeq ($(OS),Windows_NT)
-	pushd "$(abspath $(TOP))/python$(PY_LD_VER)/$(EPICS_HOST_ARCH)" && $(PYTHON) -m nose2 -v devsup $(NOSEFLAGS) && popd
+	pushd "$(abspath $(INSTALL_LOCATION))/python$(PY_LD_VER)/$(EPICS_HOST_ARCH)" && $(PYTHON) -m nose2 -v devsup $(NOSEFLAGS) && popd
 else
 	PYTHONPATH="${PYTHONPATH}:$(abspath $(TOP))/python$(PY_LD_VER)/$(EPICS_HOST_ARCH)" $(PYTHON) -m nose2 -v devsup $(NOSEFLAGS)
 endif

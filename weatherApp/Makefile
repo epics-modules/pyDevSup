@@ -1,6 +1,5 @@
 TOP=..
 include $(TOP)/configure/CONFIG
-include $(TOP)/configure/CONFIG_PY
 #----------------------------------------
 #  ADD MACRO DEFINITIONS AFTER THIS LINE
 
@@ -19,7 +18,6 @@ PY += weather.py
 # <anyname>_template = <templatename>
 
 include $(TOP)/configure/RULES
-include $(TOP)/configure/RULES_PY
 #----------------------------------------
 #  ADD RULES AFTER THIS LINE
 
