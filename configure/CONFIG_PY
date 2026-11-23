@@ -1,8 +1,5 @@
 ifneq ($(T_A),)
-ifeq (,$(wildcard $(INSTALL_LOCATION)/cfg/os/CONFIG_PY.Common.$(T_A)))
-$(warning cfg/os/CONFIG_PY.Common.$(T_A) is not found)
-else
-
+ifneq ($(dir $($(lastword $(MAKEFILE_LIST)))), $(TOP)/configure)
 ifeq ($(PYTHON),)
 # Older EPICS base does not do this automatically.
 -include $(TOP)/configure/CONFIG_SITE.local
@@ -13,7 +10,7 @@ $(error Must set PYTHON to select a python version)
 endif
 
 -include $(dir $(lastword $(MAKEFILE_LIST)))/os/CONFIG_PY.$(EPICS_HOST_ARCH).Common
-include $(INSTALL_LOCATION)/cfg/os/CONFIG_PY.Common.$(T_A)
+-include $(INSTALL_LOCATION)/cfg/os/CONFIG_PY.Common.$(T_A)
 -include $(dir $(lastword $(MAKEFILE_LIST)))/os/CONFIG_PY.Common.$(T_A)
 -include $(dir $(lastword $(MAKEFILE_LIST)))/os/CONFIG_PY.$(EPICS_HOST_ARCH).$(T_A)
 
@@ -38,8 +35,7 @@ endif
 
 #LIB_SYS_LIBS += python$(PY_LD_VER)
 #PROD_SYS_LIBS += python$(PY_LD_VER)
-
 PY_INSTALL_DIR = $(INSTALL_LOCATION)/python$(PY_LD_VER)/$(T_A)
 
-endif # CONFIG_PY.Common.$(T_A)
+endif # ifneq ($(TOP)/configure)
 endif # ifneq ($(T_A),)
