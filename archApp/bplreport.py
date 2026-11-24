@@ -88,7 +88,7 @@ def _stopWorker():
     print ('BPL worker stopped')
 
 class ReportItem(object):
-    raw = True
+    raw = False
     def __init__(self, rec, args):
         # "<operation> <report>.<index>.<attribute> "
         opname, src = args.split(None,2)[:2]

@@ -71,8 +71,11 @@ static long parse_link(dbCommon *prec, const char* src)
     Py_DECREF(ret);
 
     ret = PyObject_GetAttrString(priv->support, "raw");
-    if(!ret)
+    if(!ret) {
         PyErr_Clear();
+        /* Defaults to 1 if not set. */
+        priv->rawsupport = 1;
+    }
     else if(ret && PyObject_IsTrue(ret)==1)
         priv->rawsupport = 1;
     Py_XDECREF(ret);
@@ -180,15 +183,16 @@ static long report(int lvl)
     return 0;
 }
 
-static long init_record(dbCommon *prec)
+static long init_record_in(dbCommon *prec)
 {
     return 0;
 }
 
-static long init_record2(dbCommon *prec)
+static long init_record_out(dbCommon *prec)
 {
     pyDevice *priv = prec->dpvt;
-    if(priv && priv->rawsupport)
+    if(priv && !priv->rawsupport)
+        /* This means sucessful read but do not process to clear UDF */
         return 2;
     return 0;
 }
@@ -347,12 +351,21 @@ static long process_record(dbCommon *prec)
     return 0;
 }
 
-static long process_record2(dbCommon *prec)
+static long process_record_out(dbCommon *prec)
 {
     pyDevice *priv = prec->dpvt;
     long ret = process_record(prec);
-    if(ret==0 && priv && priv->rawsupport)
+    return ret;
+}
+
+static long process_record_in(dbCommon *prec)
+{
+    pyDevice *priv = prec->dpvt;
+    long ret = process_record(prec);
+    if(ret==0 && priv && !priv->rawsupport) {
+        /* This means sucessful read but do not process to clear UDF */
         ret = 2;
+    }
     return ret;
 }
 
@@ -374,18 +387,14 @@ typedef struct {
     DEVSUPFUN linconv;
 } dset6;
 
-static dset6 pydevsupComSpec = {{6, (DEVSUPFUN)&report, (DEVSUPFUN)&init,
-                             (DEVSUPFUN)&init_record,
-                             (DEVSUPFUN)&get_iointr_info},
-                            (DEVSUPFUN)&process_record};
 static dset6 pydevsupComOut = {{6, (DEVSUPFUN)&report, (DEVSUPFUN)&init,
-                                (DEVSUPFUN)&init_record2,
+                                (DEVSUPFUN)&init_record_out,
                                 (DEVSUPFUN)&get_iointr_info},
-                               (DEVSUPFUN)&process_record};
+                               (DEVSUPFUN)&process_record_out};
 static dset6 pydevsupComIn = {{6, (DEVSUPFUN)&report, (DEVSUPFUN)&init,
-                                (DEVSUPFUN)&init_record,
+                                (DEVSUPFUN)&init_record_in,
                                 (DEVSUPFUN)&get_iointr_info},
-                               (DEVSUPFUN)&process_record2};
+                               (DEVSUPFUN)&process_record_in};
 
 static long python_asub(aSubRecord* prec)
 {
@@ -455,9 +464,8 @@ rset* pvar_rset_aSubRSET;
 
 int isPyRecord(dbCommon *prec)
 {
-    if(prec->dset==(dset*)&pydevsupComSpec
-            || prec->dset==(dset*)&pydevsupComIn
-            || prec->dset==(dset*)&pydevsupComOut)
+    if(prec->dset==(dset*)&pydevsupComIn ||
+       prec->dset==(dset*)&pydevsupComOut)
         return 1;
     if(prec->rset==pvar_rset_aSubRSET) {
         aSubRecord *psub = (aSubRecord*)prec;
@@ -477,13 +485,11 @@ int canIOScanRecord(dbCommon *prec)
 
 static
 const dset* pydsets[] = {
-    &pydevsupComSpec.com,
     &pydevsupComIn.com,
     &pydevsupComOut.com,
 };
 
 static const char* pydsetnames[] = {
-    "pydevsupComSpec",
     "pydevsupComIn",
     "pydevsupComOut",
 };
