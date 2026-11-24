@@ -3,7 +3,7 @@ REM This script extracts the:
 REM     PATH to the Python install. On Windows, this is not a system path.
 REM     The value of the used Python version makefile variable. It is applied to the executable to be loaded.
 set TOP=%~dp0..
-set CONFIG_PY=%TOP%\configure\os\CONFIG_PY.Common.windows-x64
+set CONFIG_PY=%TOP%\cfg\os\CONFIG_PY.Common.windows-x64
 REM https://stackoverflow.com/questions/232747/read-environment-variables-from-file-in-windows-batch-cmd-exe
 setlocal EnableDelayedExpansion
 for /F "tokens=1,2 delims==" %%i in ('type %CONFIG_PY%') do (

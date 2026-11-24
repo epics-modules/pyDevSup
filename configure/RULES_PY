@@ -1,5 +1,5 @@
 ifneq ($(T_A),)
-ifndef PY_VER
+ifndef PY_INSTALL_DIR
 $(error Must include CONFIG_PY)
 endif
 

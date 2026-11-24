@@ -1,0 +1,15 @@
+# Python loadables have no prefix (eg 'pymod.so')
+# and are installed alongsize .py files
+LOADABLE_SHRLIB_PREFIX =
+
+INSTALL_SHRLIB = $(PY_INSTALL_DIR)/devsup
+
+ifeq ($(OS_CLASS),Darwin)
+# need -undefined dynamic_lookup
+LOADABLE_SHRLIB_LDFLAGS = -bundle -flat_namespace -undefined dynamic_lookup
+LOADABLE_SHRLIB_SUFFIX = .so
+endif
+
+ifeq ($(OS_CLASS),WIN32)
+SHRLIB_SUFFIX = .pyd
+endif
